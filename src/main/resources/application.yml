@@ -1,0 +1,22 @@
+server:
+  port: 8080   # Change port if needed
+
+spring:
+  application:
+    name: untitled2  # App name
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG  # Logs SQL statements
+
+app:
+  security:
+    clients:
+      - id: local-client
+        secret: local-secret
+      - id: dev-client
+        secret: dev-secret
+      - id: test-client
+        secret: test-secret

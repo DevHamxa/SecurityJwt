@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.3.4'
+    id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'org.example'
+version = '1.0-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)  // or 21
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Core Spring Boot
+    implementation 'org.springframework.boot:spring-boot-starter'
+
+    // For building REST APIs
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // Security (optional, only if you need authentication/authorization)
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // Validation (Jakarta Bean Validation API)
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // Actuator (optional, for monitoring/health)
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    testImplementation platform('org.junit:junit-bom:5.9.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
