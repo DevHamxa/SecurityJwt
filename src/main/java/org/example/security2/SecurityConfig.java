@@ -29,7 +29,7 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/autocsr/health").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new ClientAuthFilter(authManager), UsernamePasswordAuthenticationFilter.class)

@@ -2,9 +2,11 @@ package org.example.controller;
 
 import org.example.service.HelloService;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping("/autocsr")
 public class HelloController {
 
     private final HelloService helloService;
@@ -13,12 +15,12 @@ public class HelloController {
         this.helloService = helloService;
     }
 
-    @GetMapping("/api/public")
+    @GetMapping("/health")
     public String publicEndpoint() {
         return helloService.getPublicMessage();
     }
 
-    @GetMapping("/api/secure")
+    @GetMapping("/secure")
     public String secureEndpoint() {
         return helloService.getSecureMessage();
     }
