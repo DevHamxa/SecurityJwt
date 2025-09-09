@@ -33,7 +33,8 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/autocsr/health").permitAll()
-                    .anyRequest().authenticated()
+                    .requestMatchers("/autocsr/**").authenticated()
+                    .anyRequest().permitAll()
             )
             .addFilterBefore(new ClientAuthFilter(authManager, customAuthEntryPoint()), UsernamePasswordAuthenticationFilter.class)
             .exceptionHandling(ex -> ex.authenticationEntryPoint(customAuthEntryPoint()));
