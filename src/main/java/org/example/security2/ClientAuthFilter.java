@@ -1,0 +1,46 @@
+package org.example.security2;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+
+public class ClientAuthFilter extends OncePerRequestFilter {
+
+    private final AuthenticationManager authManager;
+
+    public ClientAuthFilter(AuthenticationManager authManager) {
+        this.authManager = authManager;
+    }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+
+        String clientId = request.getHeader("X-Client-Id");
+        String clientSecret = request.getHeader("X-Client-Secret");
+
+        if (clientId != null && clientSecret != null) {
+            Authentication authRequest = new UsernamePasswordAuthenticationToken(clientId, clientSecret);
+            try {
+                Authentication authResult = authManager.authenticate(authRequest);
+                SecurityContextHolder.getContext().setAuthentication(authResult);
+            } catch (AuthenticationException e) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Unauthorized: " + e.getMessage());
+                return;
+            }
+        }
+
+        filterChain.doFilter(request, response);
+    }
+}

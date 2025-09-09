@@ -1,37 +1,41 @@
-package org.example.security;
+package org.example.security2;
 
-/*import org.springframework.context.annotation.Bean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.authentication.*;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.util.List;
 
 @Configuration
+@EnableConfigurationProperties(ClientProperties.class)
 public class SecurityConfig {
 
+    private final ClientProperties clientProperties;
+
+    public SecurityConfig(ClientProperties clientProperties) {
+        this.clientProperties = clientProperties;
+    }
+
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   AuthenticationManager authManager) throws Exception {
+        return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("api/public/**").permitAll()
+                        .requestMatchers("/api/public/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .httpBasic(Customizer.withDefaults());  // 👈 client id + secret via Basic Auth
-
-        return http.build();
+                .addFilterBefore(new ClientAuthFilter(authManager), UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
+
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -41,11 +45,11 @@ public class SecurityConfig {
                 String clientId = authentication.getName();
                 String clientSecret = authentication.getCredentials().toString();
 
-                // Replace with config/db lookup
-                if ((clientId.equals("local-client") && clientSecret.equals("local-secret")) ||
-                        (clientId.equals("dev-client") && clientSecret.equals("dev-secret")) ||
-                        (clientId.equals("test-client") && clientSecret.equals("test-secret"))) {
+                // lookup in yaml-configured clients
+                boolean valid = clientProperties.getClients().stream()
+                        .anyMatch(c -> c.getId().equals(clientId) && c.getSecret().equals(clientSecret));
 
+                if (valid) {
                     return new UsernamePasswordAuthenticationToken(
                             clientId,
                             clientSecret,
@@ -53,7 +57,7 @@ public class SecurityConfig {
                     );
                 }
 
-                throw new RuntimeException("Invalid Client ID or Secret");
+                throw new BadCredentialsException("Invalid Client ID or Secret");
             }
 
             @Override
@@ -62,5 +66,11 @@ public class SecurityConfig {
             }
         };
     }
-}*/
+
+    @Bean
+    public AuthenticationManager authManager(AuthenticationProvider provider) {
+        return new ProviderManager(provider);
+    }
+}
+
 

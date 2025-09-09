@@ -14,9 +14,11 @@ logging:
 app:
   security:
     clients:
-      - id: local-client
-        secret: local-secret
-      - id: dev-client
-        secret: dev-secret
-      - id: test-client
-        secret: test-secret
+      - id: test_client_jiffy_001
+        secret: mock_secret_abc123xyz789_jiffy_test
+        name: Jiffy Test Client
+        status: Active
+      - id: demo_client_jiffy_002
+        secret: mock_secret_demo456def789_jiffy_integration
+        name: Jiffy Demo Client
+        status: Active
