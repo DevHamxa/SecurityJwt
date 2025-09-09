@@ -20,6 +20,7 @@ repositories {
 dependencies {
     // Core Spring Boot
     implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'com.google.code.gson:gson:2.11.0'
 
     // For building REST APIs
     implementation 'org.springframework.boot:spring-boot-starter-web'

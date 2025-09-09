@@ -9,6 +9,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -16,9 +17,11 @@ import java.io.IOException;
 public class ClientAuthFilter extends OncePerRequestFilter {
 
     private final AuthenticationManager authManager;
+    private final AuthenticationEntryPoint entryPoint;
 
-    public ClientAuthFilter(AuthenticationManager authManager) {
+    public ClientAuthFilter(AuthenticationManager authManager, AuthenticationEntryPoint entryPoint) {
         this.authManager = authManager;
+        this.entryPoint = entryPoint;
     }
 
     @Override
@@ -35,8 +38,10 @@ public class ClientAuthFilter extends OncePerRequestFilter {
                 Authentication authResult = authManager.authenticate(authRequest);
                 SecurityContextHolder.getContext().setAuthentication(authResult);
             } catch (AuthenticationException e) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Unauthorized: " + e.getMessage());
+                /*response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Unauthorized: " + e.getMessage());*/
+                SecurityContextHolder.clearContext();
+                entryPoint.commence(request, response, e);
                 return;
             }
         }

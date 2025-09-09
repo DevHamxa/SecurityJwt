@@ -1,5 +1,7 @@
 package org.example.security2;
 
+import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,6 +10,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -26,14 +29,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    AuthenticationManager authManager) throws Exception {
-        return http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/autocsr/health").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .addFilterBefore(new ClientAuthFilter(authManager), UsernamePasswordAuthenticationFilter.class)
-                .build();
+        http
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/autocsr/health").permitAll()
+                    .anyRequest().authenticated()
+            )
+            .addFilterBefore(new ClientAuthFilter(authManager, customAuthEntryPoint()), UsernamePasswordAuthenticationFilter.class)
+            .exceptionHandling(ex -> ex.authenticationEntryPoint(customAuthEntryPoint()));
+
+        return http.build();
     }
 
 
@@ -70,6 +75,20 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authManager(AuthenticationProvider provider) {
         return new ProviderManager(provider);
+    }
+
+    @Bean
+    public AuthenticationEntryPoint customAuthEntryPoint() {
+        return (request, response, authException) -> {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+
+            JsonObject errorResponse = new JsonObject();
+            errorResponse.addProperty("error", "Invalid client credentials");
+            errorResponse.addProperty("message", "Please provide valid X-Client-ID and X-Client-Secret headers");
+
+            response.getWriter().write(errorResponse.toString());
+        };
     }
 }
 
