@@ -27,8 +27,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   AuthenticationManager authManager) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authManager) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
@@ -53,7 +52,7 @@ public class SecurityConfig {
 
                 // lookup in yaml-configured clients
                 boolean valid = clientProperties.getClients().stream()
-                        .anyMatch(c -> c.getId().equals(clientId) && c.getSecret().equals(clientSecret));
+                        .anyMatch(c -> c.getId().equals(clientId) && c.getSecret().equals(clientSecret) && c.getStatus().equalsIgnoreCase("Active"));
 
                 if (valid) {
                     return new UsernamePasswordAuthenticationToken(
