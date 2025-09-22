@@ -2,7 +2,7 @@ package org.example.service;
 
 import com.nimbusds.jwt.JWT;
 import org.example.exception.CustomException;
-import org.example.keycloakmodels.LoginErrorResponse;
+import org.example.keycloakmodels.KeycloakErrorResponse;
 import org.example.keycloakmodels.KeycloakTokenResponse;
 import org.example.keycloakmodels.Role;
 import org.example.keycloakmodels.SignupErrorResponse;
@@ -66,7 +66,7 @@ public class KeycloakService {
             .retrieve()
             .onStatus(
                 status -> status.is4xxClientError() || status.is5xxServerError(),
-                clientResponse -> clientResponse.bodyToMono(LoginErrorResponse.class)
+                clientResponse -> clientResponse.bodyToMono(KeycloakErrorResponse.class)
                     .flatMap(error -> Mono.error(new CustomException(error.getErrorDescription())))
             )
             .bodyToMono(KeycloakTokenResponse.class)
@@ -100,9 +100,9 @@ public class KeycloakService {
             return Mono.just(new SuccessResponse(true, HttpStatus.OK.value(), "User created successfully"));
         } else {
             return clientResponse.bodyToMono(SignupErrorResponse.class)
-                    .flatMap(errorBody -> Mono.error(
-                            new CustomException(errorBody.getErrorDescription())
-                    ));
+                .flatMap(errorBody -> Mono.error(
+                        new CustomException(errorBody.getErrorDescription())
+                ));
         }
     }
 
@@ -117,7 +117,7 @@ public class KeycloakService {
         if (users != null && !users.isEmpty()) {
             return users.get(0).getId();
         }
-        throw new RuntimeException("User not found in Keycloak: " + username);
+        throw new CustomException("No such user exists. User not found");
     }
 
     public Role getRealmRole(String token, String roleName) {
@@ -129,7 +129,7 @@ public class KeycloakService {
             .block();
 
         if (role == null) {
-            throw new RuntimeException("Role not found in Keycloak: " + roleName);
+            throw new CustomException("Invalid Role Selected. Role not found");
         }
 
         return role;
@@ -148,7 +148,10 @@ public class KeycloakService {
         if (clientResponse.statusCode().is2xxSuccessful()) {
             return Mono.just(new SuccessResponse(true, HttpStatus.OK.value(), "Role CSR Assigned successfully."));
         } else {
-            throw new RuntimeException("Failed to assign role to the user. please try again.");
+            return clientResponse.bodyToMono(KeycloakErrorResponse.class)
+                .flatMap(errorBody -> Mono.error(
+                        new CustomException(errorBody.getErrorDescription())
+                ));
         }
     }
 

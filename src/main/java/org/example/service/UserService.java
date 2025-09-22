@@ -1,6 +1,7 @@
 package org.example.service;
 
 import lombok.AllArgsConstructor;
+import org.example.exception.CustomException;
 import org.example.keycloakmodels.KeycloakTokenResponse;
 import org.example.keycloakmodels.LoginResponse;
 import org.example.models.SuccessResponse;
@@ -20,7 +21,7 @@ public class UserService {
         try {
             keycloakService.validateUserToken(keycloakTokenResponse.getAccessToken());
         } catch (ParseException e) {
-            throw new RuntimeException("Unable to login the User, please try again later");
+            throw new CustomException("Unable to login the User, please try again later");
         }
         return new LoginResponse(keycloakTokenResponse.getAccessToken());
     }

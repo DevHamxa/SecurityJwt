@@ -18,6 +18,6 @@ public class AdminService {
         KeycloakTokenResponse keycloakTokenResponse = keycloakService.getAdminAccessToken();
         String userId = keycloakService.getUserIdByUsername(keycloakTokenResponse.getAccessToken(), username);
         Role role =  keycloakService.getRealmRole(keycloakTokenResponse.getAccessToken(), roleName);
-        return keycloakService.assignRoleToUser(keycloakTokenResponse.getAccessToken(), username, role);
+        return keycloakService.assignRoleToUser(keycloakTokenResponse.getAccessToken(), userId, role);
     }
 }
