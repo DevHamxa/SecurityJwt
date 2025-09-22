@@ -3,7 +3,7 @@ package org.example.service;
 import lombok.AllArgsConstructor;
 import org.example.keycloakmodels.KeycloakTokenResponse;
 import org.example.keycloakmodels.LoginResponse;
-import org.example.keycloakmodels.SignUpResponse;
+import org.example.models.SuccessResponse;
 import org.example.models.UserModel;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +25,7 @@ public class UserService {
         return new LoginResponse(keycloakTokenResponse.getAccessToken());
     }
 
-    public SignUpResponse signUp(UserModel userModel) {
+    public SuccessResponse signUp(UserModel userModel) {
         KeycloakTokenResponse keycloakTokenResponse = keycloakService.getAdminAccessToken();
         return keycloakService.createUser(keycloakTokenResponse.getAccessToken(), userModel);
     }

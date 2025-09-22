@@ -1,23 +1,26 @@
 package org.example.service;
 
 import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTParser;
-import org.example.exception.UnAuthorizedException;
+import org.example.exception.CustomException;
+import org.example.keycloakmodels.LoginErrorResponse;
 import org.example.keycloakmodels.KeycloakTokenResponse;
-import org.example.keycloakmodels.SignUpResponse;
+import org.example.keycloakmodels.Role;
+import org.example.keycloakmodels.SignupErrorResponse;
+import org.example.models.SuccessResponse;
 import org.example.models.UserModel;
 import org.example.roles.RoleValidator;
 import org.example.securitydemo.CustomJwtParser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
-import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.text.ParseException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -61,6 +64,11 @@ public class KeycloakService {
             .bodyValue("grant_type=password&client_id=" + client + "&username="
                     + username + "&password=" + password)
             .retrieve()
+            .onStatus(
+                status -> status.is4xxClientError() || status.is5xxServerError(),
+                clientResponse -> clientResponse.bodyToMono(LoginErrorResponse.class)
+                    .flatMap(error -> Mono.error(new CustomException(error.getErrorDescription())))
+            )
             .bodyToMono(KeycloakTokenResponse.class)
             .block();
     }
@@ -77,38 +85,71 @@ public class KeycloakService {
         return login(adminUsername, adminPassword);
     }
 
-    public SignUpResponse createUser(String token, UserModel userModel) {
+    public SuccessResponse createUser(String token, UserModel userModel) {
         return webClient.post()
             .uri(realmAdminApi + "/users")
             .header("Authorization", "Bearer " + token)
             .header("Content-Type", "application/json")
             .bodyValue(userModel)
-            .exchangeToMono(KeycloakService::validateResponse)
+            .exchangeToMono(KeycloakService::validateCreateUserResponse)
             .block();
     }
 
-    private static Mono<SignUpResponse> validateResponse(ClientResponse clientResponse) {
-        int status = clientResponse.statusCode().value();
-
+    private static Mono<SuccessResponse> validateCreateUserResponse(ClientResponse clientResponse) {
         if (clientResponse.statusCode().is2xxSuccessful()) {
-            return Mono.just(new SignUpResponse(true, status, "User created successfully"));
+            return Mono.just(new SuccessResponse(true, HttpStatus.OK.value(), "User created successfully"));
         } else {
-            throw new RuntimeException("Failed to create user. please try again.");
+            return clientResponse.bodyToMono(SignupErrorResponse.class)
+                    .flatMap(errorBody -> Mono.error(
+                            new CustomException(errorBody.getErrorDescription())
+                    ));
         }
     }
 
     public String getUserIdByUsername(String token, String username) {
-        List<UserModel> users = webClient.get()
+        List<org.example.keycloakmodels.UserModel> users = webClient.get()
             .uri(realmAdminApi + "/users?username=" + username)
             .header("Authorization", "Bearer " + token)
             .retrieve()
-            .bodyToMono(new ParameterizedTypeReference<List<UserModel>>() {})
+            .bodyToMono(new ParameterizedTypeReference<List<org.example.keycloakmodels.UserModel>>() {})
             .block();
 
-        /*if (users != null && !users.isEmpty()) {
+        if (users != null && !users.isEmpty()) {
             return users.get(0).getId();
-        }*/
-        return null;
+        }
+        throw new RuntimeException("User not found in Keycloak: " + username);
+    }
+
+    public Role getRealmRole(String token, String roleName) {
+        Role role = webClient.get()
+            .uri(realmAdminApi + "/roles/" + roleName)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+            .retrieve()
+            .bodyToMono(Role.class)
+            .block();
+
+        if (role == null) {
+            throw new RuntimeException("Role not found in Keycloak: " + roleName);
+        }
+
+        return role;
+    }
+
+    public SuccessResponse assignRoleToUser(String token, String userId, Role role) {
+        return webClient.post()
+            .uri(realmAdminApi + "/users/" + userId + "/role-mappings/realm")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+            .bodyValue(Collections.singletonList(role))
+            .exchangeToMono(KeycloakService::validateRoleAssigned)
+            .block();
+    }
+
+    private static Mono<SuccessResponse> validateRoleAssigned(ClientResponse clientResponse) {
+        if (clientResponse.statusCode().is2xxSuccessful()) {
+            return Mono.just(new SuccessResponse(true, HttpStatus.OK.value(), "Role CSR Assigned successfully."));
+        } else {
+            throw new RuntimeException("Failed to assign role to the user. please try again.");
+        }
     }
 
 }

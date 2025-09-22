@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.exception.CustomException;
 import org.example.exception.UnAuthorizedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,15 @@ import java.util.Map;
 @Slf4j
 /*Do not include in jiffy*/
 public class GlobalExceptionHandler {
+
+    /*include in jiffy*/
+    @ExceptionHandler(CustomException.class)
+    public ResponseEntity<ApiError> customException(CustomException ex) {
+        log.error("custom exception: ", ex);
+        ApiError apiError = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 
     /*include in jiffy*/
     @ExceptionHandler(UnAuthorizedException.class)
