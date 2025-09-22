@@ -20,14 +20,21 @@ public class CustomJwtParser {
         return jwt.getJWTClaimsSet().getClaims();
     }
 
-    public List<String> extractRolesFromClaims(Map<String, Object> claims, String resourceId) {
-        Map<String, Object> resourceAccess = (Map<String, Object>) claims.get("resource_access");
+    public List<String> extractRolesFromClaims(Map<String, Object> claims, String realmAccess) {
+        if (claims == null || !claims.containsKey(realmAccess)) { return Collections.emptyList(); }
 
+        Map<String, Object> resourceAccess = (Map<String, Object>) claims.get(realmAccess);
+        if (resourceAccess == null) { return Collections.emptyList(); }
+
+        Object rolesObj = resourceAccess.get("roles");
+        if (rolesObj instanceof List) { return (List<String>) rolesObj; }
+        else { return Collections.emptyList(); }
+
+        /*Map<String, Object> resourceAccess = (Map<String, Object>) claims.get("resource_access");
         if (resourceAccess == null || !resourceAccess.containsKey(resourceId)) {
             return Collections.emptyList();
         }
-
         Map<String, Object> clientRoles = (Map<String, Object>) resourceAccess.get(resourceId);
-        return (List<String>) clientRoles.getOrDefault("roles", Collections.emptyList());
+        return (List<String>) clientRoles.getOrDefault("roles", Collections.emptyList());*/
     }
 }

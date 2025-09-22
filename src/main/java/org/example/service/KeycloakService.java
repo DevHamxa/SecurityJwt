@@ -51,6 +51,9 @@ public class KeycloakService {
     @Value("${jwt.auth.converter.resource-id}")
     private String resourceId;
 
+    @Value("${jwt.auth.converter.realm-access}")
+    private String realmAccess;
+
     public KeycloakService(WebClient webClient, CustomJwtParser jwtParser, RoleValidator roleValidator) {
         this.webClient = webClient;
         this.customJwtParser = jwtParser;
@@ -76,7 +79,7 @@ public class KeycloakService {
     public void validateUserToken(String token) throws ParseException {
         JWT jwt = customJwtParser.parseJwt(token);
         Map<String, Object> claims = customJwtParser.extractClaims(jwt);
-        List<String> roles = customJwtParser.extractRolesFromClaims(claims, resourceId);
+        List<String> roles = customJwtParser.extractRolesFromClaims(claims, realmAccess);
 
         roleValidator.validateRoles(roles);
     }

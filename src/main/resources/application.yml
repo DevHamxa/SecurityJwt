@@ -44,5 +44,15 @@ app:   # (need this in jiffy)
 jwt: # (need this in jiffy)
   auth:
     converter:
-      resource-id: jiffy-dev-app
       principle-attribute: preferred_username
+      role: role
+
+      # For realm based role access
+      realm-access: realm_access
+
+      # For client based role access
+      resource-access: resource_access
+      resource-id: jiffy-dev-app
+
+
+
