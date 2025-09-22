@@ -34,6 +34,27 @@ dependencies {
     // Actuator (optional, for monitoring/health)
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
+
+    // Move to Jiffy
+    // Webflux
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+
+    // Spring Boot starters
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // OAuth2 Resource Server (for JWT validation)
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+    // JWT support (io.jsonwebtoken)
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5' // JSON serialization/deserialization
+
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 

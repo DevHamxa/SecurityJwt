@@ -1,4 +1,4 @@
-package org.example.security2;
+package org.example.securitydemo;
 
 import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletResponse;
@@ -6,7 +6,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.*;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -17,6 +19,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import java.util.List;
 
 @Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
 @EnableConfigurationProperties(ClientProperties.class)
 public class SecurityConfig {
 
@@ -27,20 +31,33 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authManager) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationConverter jwtAuthenticationConverter, AuthenticationManager authManager) throws Exception {
         http
+            // disable CSRF for APIs
             .csrf(csrf -> csrf.disable())
+
+            // authorization rules
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/autocsr/health").permitAll()
-                    .requestMatchers("/autocsr/**").authenticated()
-                    .anyRequest().permitAll()
+                    .requestMatchers("/user/login", "/user/signup").permitAll()
+                    .requestMatchers("/admin/**").hasRole("ADMIN")
+                    .requestMatchers("/autocsr/**").hasRole("CSR")
+                    .anyRequest().authenticated()
             )
-            .addFilterBefore(new ClientAuthFilter(authManager, customAuthEntryPoint()), UsernamePasswordAuthenticationFilter.class)
+
+            // JWT validation with role mapping
+            .oauth2ResourceServer(oauth2 -> oauth2
+                    .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
+            )
+
+            // custom filter before UsernamePasswordAuthenticationFilter
+            .addFilterBefore(new ClientAuthFilter(authManager, customAuthEntryPoint()),
+                    UsernamePasswordAuthenticationFilter.class)
+
+            // exception handling
             .exceptionHandling(ex -> ex.authenticationEntryPoint(customAuthEntryPoint()));
 
         return http.build();
     }
-
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -83,9 +100,11 @@ public class SecurityConfig {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
 
+            String message = authException.getMessage();
+
             JsonObject errorResponse = new JsonObject();
             errorResponse.addProperty("error", "Invalid client credentials");
-            errorResponse.addProperty("message", "Please provide valid X-Client-ID and X-Client-Secret headers");
+            errorResponse.addProperty("message", message);
 
             response.getWriter().write(errorResponse.toString());
         };

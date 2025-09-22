@@ -1,4 +1,4 @@
-package org.example.security2;
+package org.example.securitydemo;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

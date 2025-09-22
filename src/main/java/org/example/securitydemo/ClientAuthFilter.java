@@ -1,10 +1,11 @@
-package org.example.security2;
+package org.example.securitydemo;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -38,10 +39,15 @@ public class ClientAuthFilter extends OncePerRequestFilter {
                 Authentication authResult = authManager.authenticate(authRequest);
                 SecurityContextHolder.getContext().setAuthentication(authResult);
             } catch (AuthenticationException e) {
-                /*response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Unauthorized: " + e.getMessage());*/
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                //response.getWriter().write("Unauthorized: " + e.getMessage());
+
                 SecurityContextHolder.clearContext();
-                entryPoint.commence(request, response, e);
+                entryPoint.commence(
+                        request,
+                        response,
+                        new BadCredentialsException("Please provide valid X-Client-ID and X-Client-Secret headers ", e)
+                        );
                 return;
             }
         }

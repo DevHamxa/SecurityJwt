@@ -7,21 +7,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/autocsr")
-public class HelloController {
+@RequestMapping("/admin")
+public class AdminController {
 
     private final HelloService helloService;
 
-    public HelloController(HelloService helloService) {
+    public AdminController(HelloService helloService) {
         this.helloService = helloService;
     }
 
-    @GetMapping("/health")
+    @GetMapping("/check")
     public String publicEndpoint() {
         return helloService.getPublicMessage();
     }
 
-    @GetMapping("/secure")
+    @GetMapping("/check2")
     public String secureEndpoint() {
         return helloService.getSecureMessage();
     }
