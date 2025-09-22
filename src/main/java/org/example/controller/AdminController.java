@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/admin")
+/*Do not include in jiffy*/
 public class AdminController {
 
     private final HelloService helloService;

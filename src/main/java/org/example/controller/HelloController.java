@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/autocsr")
+/*Do not include in jiffy*/
 public class HelloController {
 
     private final HelloService helloService;

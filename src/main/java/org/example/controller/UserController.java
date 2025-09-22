@@ -21,19 +21,7 @@ public class UserController {
 
     @GetMapping("/login")
     public ResponseEntity<?> login(@RequestParam String username, @RequestParam String password) {
-        try {
             return ResponseEntity.ok(userService.login(username, password));
-        } catch (InsufficientAuthenticationException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).
-                    body(Map.of(
-                            "status", "failure",
-                            "message", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).
-                body(Map.of(
-                "status", "failure",
-                "message", "Invalid credentials or login failed"));
-        }
     }
 
     @PostMapping("/signup")

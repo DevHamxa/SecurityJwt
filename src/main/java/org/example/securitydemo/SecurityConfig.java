@@ -2,6 +2,8 @@ package org.example.securitydemo;
 
 import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.exception.UnAuthorizedException;
+import org.example.roles.Roles;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,8 +41,8 @@ public class SecurityConfig {
             // authorization rules
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/user/login", "/user/signup").permitAll()
-                    .requestMatchers("/admin/**").hasRole("ADMIN")
-                    .requestMatchers("/autocsr/**").hasRole("CSR")
+                    .requestMatchers("/admin/**").hasRole(Roles.ADMIN.getValue())
+                    .requestMatchers("/autocsr/**").hasRole(Roles.CSR.getValue())
                     .anyRequest().authenticated()
             )
 
@@ -79,7 +81,7 @@ public class SecurityConfig {
                     );
                 }
 
-                throw new BadCredentialsException("Invalid Client ID or Secret");
+                throw new UnAuthorizedException("Invalid Client ID or Secret");
             }
 
             @Override

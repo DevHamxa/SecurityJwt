@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.exception.UnAuthorizedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -46,7 +47,7 @@ public class ClientAuthFilter extends OncePerRequestFilter {
                 entryPoint.commence(
                         request,
                         response,
-                        new BadCredentialsException("Please provide valid X-Client-ID and X-Client-Secret headers ", e)
+                        new UnAuthorizedException("Please provide valid X-Client-ID and X-Client-Secret headers")
                         );
                 return;
             }

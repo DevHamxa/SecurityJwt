@@ -3,6 +3,7 @@ package org.example.service;
 import org.springframework.stereotype.Service;
 
 @Service
+/*Do not include in jiffy*/
 public class HelloService {
 
     public String getPublicMessage() {
