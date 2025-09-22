@@ -1,0 +1,71 @@
+server:
+  port: 8080
+
+spring:
+  profiles:
+    active: local
+  application:
+    name: jiffy-api
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8180/realms/jiffy-realm
+      client:
+        registration:
+          keycloak:
+            client-id: jiffy-dev
+            client-secret: FWqhV9oCmYeIa40eF9JFLOekpBe67xVP
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/keycloak"
+            scope: openid,profile,email
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8180/realms/jiffy-realm
+            user-name-attribute: preferred_username
+
+# Default configuration
+app:
+  omegaApiKey: ${EXTERNAL_API_KEY:07cd89669d1c569ced232c65e2218cdb}
+  omegaApiVersion: "2.0"
+  omegaApiBaseUrl: "https://app.omegaedi.com/api/"
+  cache:
+    initialCapacity: 100
+    maximumSize: 500
+    expireAfterAccessMinutes: 30
+    expireAfterWriteMinutes: 60
+    recordStats: true
+
+# Keycloak admin configuration 👇
+keycloak:
+  server-url: http://localhost:8180
+  realm: jiffy-realm
+
+  # For user login
+  client: jiffy-dev
+  client-secret: FWqhV9oCmYeIa40eF9JFLOekpBe67xVP
+
+  # For admin API (role assignment)
+  realm-admin-api: http://localhost:8180/admin/realms/jiffy-realm
+  admin-client-id: jiffy-dev
+  admin-username: admin
+  admin-password: password
+
+jwt:
+  auth:
+    converter:
+      resource-id: jiffy-dev-app
+      principle-attribute: preferred_username
+# Logging configuration
+logging:
+  level:
+    com.boggess.jiffy.api: INFO
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
