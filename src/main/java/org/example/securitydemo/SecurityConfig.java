@@ -36,9 +36,13 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationConverter jwtAuthenticationConverter, AuthenticationManager authManager) throws Exception {
+        CookieCsrfTokenRepository csrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
         http
-            // disable CSRF for APIs
-            .csrf(csrf -> csrf.disable())
+            .csrf(csrf -> csrf
+                    .csrfTokenRepository(csrfTokenRepository)
+                    .ignoringRequestMatchers("/user/login", "/user/signup")
+            )
+            .addFilterAfter(new StrictCsrfHeaderFilter(), CsrfFilter.class)
 
             // authorization rules
             .authorizeHttpRequests(auth -> auth
